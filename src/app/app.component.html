@@ -1,3 +1,132 @@
-<h1>
-  {{title}}
-</h1>
+<nav class="navbar navbar-default navbar-fixed-top" style="background-color: #607D8B; box-shadow: 0 0 1px 2px rgba(0, 0, 0, 0.1);">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#" style="color:white;">Micro Censo</a>
+    </div>
+
+    <ul class="nav navbar-nav navbar-right">
+      <li>
+        <a class="navbar-item" (click)="getForms(); showOpenDialog()">
+          <span class="tip">Abrir</span>
+          <img style="cursor: pointer; height: 25px;" src="app/img/open.png">
+        </a>
+      </li>
+      <li>
+        <a class="navbar-item" (click)="save()">
+          <span class="tip">Guardar</span>
+          <img style="cursor: pointer; height: 25px;" src="app/img/save.png">
+        </a>
+      </li>
+      <li>
+        <a class="navbar-item" (click)="clear();">
+          <span class="tip">Limpiar</span>
+          <img style="cursor: pointer; height: 25px;" src="app/img/newForm.png">
+        </a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<div id="open-dialog">
+  <div id="title">Formularios</div>
+  <a href="#" (click)="getForms()" id="refresh" class="list-group-item"><img height="35px" src="app/img/restart.png"/> Refrescar</a>
+  <br>
+  <input [(ngModel)]="formFilter" (ngModelChange)="filtro()" id="input-filter" class="form-control" placeholder="Buscar formulario" style="margin-bottom: 5px">
+  <div class="list-group">
+    <a href="#" *ngFor="let form of filteredForms;let i = index" class="list-group-item">
+      <table width="100%">
+        <tr>
+          <td [id]="i" (click)="openForm($event);">
+            {{form.FORM_TITLE}}
+          </td>
+          <td width="30px">
+            <img class="form-delete" [id]="i" (click)="deleteFormClick($event)" src="app/img/delete.png">
+          </td>
+        </tr>
+      </table>
+    </a>
+  </div>
+</div>
+
+<div id="prompt">
+  <h3>Nueva opción</h3>
+  <hr>
+  <input id="input-prompt" [(ngModel)]="promptVal" (keypress)="inputPromptEnter($event)">
+  <br><br>
+  <button class="btn btn-info" (click)="optionAdd()">Agregar</button>
+  <button class="btn btn-danger" (click)="promptVal = ''; hidePrompt();">Cancelar</button>
+</div>
+
+<div id="alert">
+  <img id="loader" src="app/img/loader.gif">
+  <p id="alertText">Texto</p>
+  <br><br>
+  <button (click)="hideAlert();" id="alertButton" class="btn btn-info">OK</button>
+
+  <button (click)="formDelete = false; deleteForm();" *ngIf="formDelete" class="btn btn-info">Si</button>
+  <button (click)="hideAlert(); formDelete = false" *ngIf="formDelete" class="btn btn-info">No</button>
+</div>
+
+<div id="fader" (click)="hidePrompt();hideAlert();hideDialog();"></div>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-sm-3 col-md-2 sidebar" style="background-color: #f8f8f8; box-shadow: 0 0 5px 1px rgba(0, 0, 0, 0.08); !important;">
+      <ul id="sideMenu" class="nav nav-sidebar" style="margin-top: -17px">
+        <li *ngFor="let item of sideMenu" (click)="createQuestion(item.type)" class="list-group-item">
+          <img [src]="item.imageURL" style="width: 24px;"> {{item.title}}
+        </li>
+      </ul>
+    </div>
+
+    <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+
+      <input class="input-title" [(ngModel)]="formTitle" placeholder="Click para editar titulo">
+
+      <div *ngFor="let item of questions"
+           draggable="true"
+           (dragover)="allowDrop($event)"
+           (dragstart)="dragStart($event)"
+           (drop)="drop($event)"
+           (dragend)="dragEnd($event)"
+           [id]="item.id"
+           class="panel panel-default formElements">
+
+        <div class="panel-content" [id]="item.id" (click)="showHideInput(item.id)">
+          <span *ngIf="item.selected == false" [id]="item.id">{{item.title}}</span>
+          <input *ngIf="item.selected == true"
+                 (blur)="inputBlur(item.id)"
+                 [value]="item.title"
+                 [id]="item.id + 'input'"
+                 (input)="item.title = $event.target.value"
+                 (keypress)="enterEv($event)"
+                 class="input-item">
+        </div>
+
+        <div [id]="item.id" class="option-list" *ngIf="item.type == 'unique' || item.type == 'multiple'">
+          <table width="100%">
+            <tr>
+              <td>
+                <select class="option-select" [id]="item.id" size="5" style="width:100%;">
+                  <option selected *ngFor="let option of item.list">{{option}}</option>
+                </select>
+              </td>
+              <td width="100px" style="padding-left: 15px;">
+                <div class="btn-group" role="group">
+                  <button class="btn" (click)="showPrompt(item.id)"><img src="app/img/plus.png" width="16px"></button>
+                  <button class="btn" (click)="deleteListItem(item.id)"><img src="app/img/delete.png" width="16px"></button>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <select *ngIf="item.type != 'group'" [ngModel]="item.type" (ngModelChange)="onChangeObj($event, item.id)" id="type-select">
+          <option [ngValue]="i.type" *ngFor="let i of qTypes">{{i.title}}</option>
+        </select>
+
+        <img [id]="item.id" (click)="deleteItem($event)" class="panel-delete" src="app/img/delete.png">
+      </div>
+    </div>
+  </div>
+</div>
